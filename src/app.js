@@ -1,0 +1,67 @@
+import dotenv from 'dotenv';
+dotenv.config();
+import express from 'express';
+import cors from 'cors';
+import session from 'express-session';
+import MongoDBStoreImport from 'connect-mongodb-session';
+import { connect } from './services/db.js';
+import { isAuthenticated } from './middleware/auth.js';
+
+import adminAuthRoutes from './routes/adminAuth.js';
+import adminBannerRoutes from './routes/adminBanner.js';
+import adminBlocksRoutes from './routes/adminBlocks.js';
+import adminAboutRoutes from './routes/adminAbout.js';
+import publicBannerRoutes from './routes/publicBanner.js';
+import publicBlocksRoutes from './routes/publicBlocks.js';
+import publicAboutRoutes from './routes/publicAbout.js';
+
+const app = express();
+const MongoDBStore = MongoDBStoreImport(session);
+
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+app.use(express.json());
+
+const uri = process.env.MONGO_URI;
+const store = new MongoDBStore({
+    uri,
+    collection: 'sessions',
+});
+store.on('error', function(error) {
+    console.error('Session store error:', error);
+});
+
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    store: store,
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+    }
+}));
+// Example for Express + cookie-session or JWT auth
+app.get('/admin/auth/check', (req, res) => {
+    if (req.session?.adminUser || req.user?.isAdmin) {
+        return res.status(200).json({ isAuthenticated: true });
+    } else {
+        return res.status(401).json({ isAuthenticated: false });
+    }
+});
+
+// Admin routes (protected)
+app.use('/api/admin', adminAuthRoutes);
+app.use('/api/admin/dashboard', isAuthenticated, adminAuthRoutes);
+app.use('/api/admin/logout', isAuthenticated, adminAuthRoutes);
+app.use('/api/admin/banner', isAuthenticated, adminBannerRoutes);
+app.use('/api/admin/blocks', isAuthenticated, adminBlocksRoutes);
+app.use('/api/admin/about', isAuthenticated, adminAboutRoutes);
+
+// Public routes
+app.use('/api/public/banner', publicBannerRoutes);
+app.use('/api/public/blocks', publicBlocksRoutes);
+app.use('/api/public/about', publicAboutRoutes);
+
+export default app;
