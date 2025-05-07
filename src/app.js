@@ -17,8 +17,15 @@ import publicAboutRoutes from './routes/publicAbout.js';
 
 const app = express();
 const MongoDBStore = MongoDBStoreImport(session);
-
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+const furi=process.env.FRONTEND_URL;
+app.use(cors({
+    origin: process.env.NODE_ENV === 'production' 
+        ? process.env.FRONTEND_URL 
+        : 'http://localhost:3000',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 const uri = process.env.MONGO_URI;
@@ -43,7 +50,7 @@ app.use(session({
     }
 }));
 // Example for Express + cookie-session or JWT auth
-app.get('/admin/auth/check', (req, res) => {
+app.get('/api/admin/auth/check', (req, res) => {
     if (req.session?.adminUser || req.user?.isAdmin) {
         return res.status(200).json({ isAuthenticated: true });
     } else {
