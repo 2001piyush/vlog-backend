@@ -19,8 +19,8 @@ const app = express();
 const MongoDBStore = MongoDBStoreImport(session);
 const furi=process.env.FRONTEND_URL;
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production' 
-        ? process.env.FRONTEND_URL 
+    origin: process.env.NODE_ENV === 'production'
+        ? process.env.FRONTEND_URL
         : 'http://localhost:3000',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -45,8 +45,8 @@ app.use(session({
     cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 7,
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production', // true on Render
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for cross-site
     }
 }));
 // Example for Express + cookie-session or JWT auth
