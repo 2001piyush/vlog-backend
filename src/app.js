@@ -14,10 +14,29 @@ import adminAboutRoutes from './routes/adminAbout.js';
 import publicBannerRoutes from './routes/publicBanner.js';
 import publicBlocksRoutes from './routes/publicBlocks.js';
 import publicAboutRoutes from './routes/publicAbout.js';
-
+ 
 const app = express();
+app.use(express.json()); // Parse JSON bodies
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+
+const getCookieDomain = () => {
+  if (process.env.NODE_ENV !== 'production') return undefined;
+  
+  try {
+    const url = new URL(process.env.FRONTEND_URL);
+    // For domains like 'example.com' (no subdomain)
+    if (!url.hostname.includes('.')) return undefined;
+    
+    // For proper domains (example.com, app.example.com)
+    return url.hostname.startsWith('www.') 
+      ? `.${url.hostname.substring(4)}`  // removes www
+      : `.${url.hostname}`;              // adds leading dot
+  } catch {
+    return undefined; // fallback if URL parsing fails
+  }
+};
+
 const MongoDBStore = MongoDBStoreImport(session);
-const furi=process.env.FRONTEND_URL;
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
         ? process.env.FRONTEND_URL
@@ -26,7 +45,7 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
+
 
 const uri = process.env.MONGO_URI;
 const store = new MongoDBStore({
@@ -47,8 +66,14 @@ app.use(session({
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production', // true on Render
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for cross-site
+        domain: getCookieDomain()
     }
 }));
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', true);
+  next();
+});
+
 // Example for Express + cookie-session or JWT auth
 app.get('/api/admin/auth/check', (req, res) => {
     if (req.session?.adminUser || req.user?.isAdmin) {
