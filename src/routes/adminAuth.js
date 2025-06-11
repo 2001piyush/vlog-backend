@@ -1,14 +1,41 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
-import { usersCollection } from '../models/user.js';
+import { adminCollection } from '../models/admin.js';
 
 const router = express.Router();
+/**
+ * @swagger
+ * /api/admin/login:
+ *   post:
+ *     summary: Admin login
+ *     tags: [Admin]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 example: admin
+ *               password:
+ *                 type: string
+ *                 example: password123
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Invalid username or password
+ *       500:
+ *         description: Internal server error
+ */
 
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
     const trimmedUsername = username.trim();
     try {
-        const userCollection = usersCollection();
+        const userCollection = adminCollection();
         if (!userCollection) return res.status(500).json({ message: 'Database not connected' });
 
         const  user =  await userCollection.findOne({ username: trimmedUsername });
@@ -30,11 +57,33 @@ router.post('/login', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-
+/**
+ * @swagger
+ * /api/admin/dashboard:
+ *   get:
+ *     summary: Get admin dashboard
+ *     tags: [Admin]
+ *     responses:
+ *       200:
+ *         description: Welcome to the admin dashboard!
+ *       401:
+ *         description: Unauthorized
+ */
 router.get('/dashboard', (req, res) => {
     res.json({ message: 'Welcome to the admin dashboard!', userId: req.session.userId });
 });
-
+/**
+ * @swagger
+ * /api/admin/logout:
+ *   post:
+ *     summary: Admin logout
+ *     tags: [Admin]
+ *     responses:
+ *       200:
+ *         description: Logout successful
+ *       500:
+ *         description: Logout failed
+ */
 router.post('/logout', (req, res) => {
     req.session.destroy((err) => {
         if (err) {

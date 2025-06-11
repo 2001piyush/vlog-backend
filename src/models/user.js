@@ -1,3 +1,2 @@
 import { getDb } from '../services/db.js';
-
-export const usersCollection = () => getDb() && getDb().collection('users');
+export const User= () => getDb() && getDb().collection('users');

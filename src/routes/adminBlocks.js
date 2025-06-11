@@ -3,6 +3,18 @@ import { ObjectId } from 'mongodb';
 import { contentBlocksCollection } from '../models/block.js';
 
 const router = express.Router();
+/**
+ * @swagger
+ * /api/admin/about:
+ *   get:
+ *     summary: Get about page content
+ *     tags: [About]
+ *     responses:
+ *       200:
+ *         description: About page content
+ *       500:
+ *         description: Internal server error
+ */
 
 router.post('/', async (req, res) => {
     const { imageUrl, text, size, linkUrl } = req.body;

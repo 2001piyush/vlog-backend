@@ -2,6 +2,18 @@ import express from 'express';
 import { bannerImagesCollection } from '../models/banner.js';
 
 const router = express.Router();
+/**
+ * @swagger
+ * /api/admin/about:
+ *   get:
+ *     summary: Get about page content
+ *     tags: [About]
+ *     responses:
+ *       200:
+ *         description: About page content
+ *       500:
+ *         description: Internal server error
+ */
 
 router.get('/', async (req, res) => {
     try {

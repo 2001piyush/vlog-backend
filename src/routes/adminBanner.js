@@ -17,6 +17,18 @@ router.post('/', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+/**
+ * @swagger
+ * /api/admin/about:
+ *   get:
+ *     summary: Get about page content
+ *     tags: [About]
+ *     responses:
+ *       200:
+ *         description: About page content
+ *       500:
+ *         description: Internal server error
+ */
 
 router.get('/', async (req, res) => {
     try {
